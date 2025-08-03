@@ -6,32 +6,10 @@ import java.util.Objects;
 public class ArrayList<T> implements List<T> {
     private static final int DEFAULT_CAPACITY = 10;
     private Object[] elements;
-    private int size;
+    private int size = 0;
 
     public ArrayList() {
         elements = new Object[DEFAULT_CAPACITY];
-        size = 0;
-    }
-
-    private void ensureCapacity() {
-        if (size == elements.length) {
-            int newCapacity = elements.length + elements.length / 2;
-            Object[] newElements = new Object[newCapacity];
-            System.arraycopy(elements, 0, newElements, 0, elements.length);
-            elements = newElements;
-        }
-    }
-
-    private void checkIndex(int index) {
-        if (index < 0 || index >= size) {
-            throw new ArrayListIndexOutOfBoundsException("Index: " + index + ", Size: " + size);
-        }
-    }
-
-    private void checkIndexForAdd(int index) {
-        if (index < 0 || index > size) {
-            throw new ArrayListIndexOutOfBoundsException("Index: " + index + ", Size: " + size);
-        }
     }
 
     @Override
@@ -51,8 +29,12 @@ public class ArrayList<T> implements List<T> {
 
     @Override
     public void addAll(List<T> list) {
+        if (list == null || list.size() == 0) {
+            return;
+        }
+        ensureCapacity(size + list.size());
         for (int i = 0; i < list.size(); i++) {
-            add(list.get(i));
+            elements[size++] = list.get(i);
         }
     }
 
@@ -80,7 +62,9 @@ public class ArrayList<T> implements List<T> {
     @Override
     public T remove(T element) {
         for (int i = 0; i < size; i++) {
-            if (Objects.equals(elements[i], element)) {
+            if (element == null && elements[i] == null) {
+                return remove(i);
+            } else if (element != null && element.equals(elements[i])) {
                 return remove(i);
             }
         }
@@ -95,5 +79,33 @@ public class ArrayList<T> implements List<T> {
     @Override
     public boolean isEmpty() {
         return size == 0;
+    }
+
+    private void ensureCapacity() {
+        ensureCapacity(size + 1);
+    }
+
+    private void ensureCapacity(int minCapacity) {
+        if (minCapacity > elements.length) {
+            int newCapacity = elements.length;
+            while (newCapacity < minCapacity) {
+                newCapacity += newCapacity / 2;
+            }
+            Object[] newElements = new Object[newCapacity];
+            System.arraycopy(elements, 0, newElements, 0, elements.length);
+            elements = newElements;
+        }
+    }
+
+    private void checkIndex(int index) {
+        if (index < 0 || index >= size) {
+            throw new ArrayListIndexOutOfBoundsException("Index: " + index + ", Size: " + size);
+        }
+    }
+
+    private void checkIndexForAdd(int index) {
+        if (index < 0 || index > size) {
+            throw new ArrayListIndexOutOfBoundsException("Index: " + index + ", Size: " + size);
+        }
     }
 }
