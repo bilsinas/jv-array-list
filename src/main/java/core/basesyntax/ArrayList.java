@@ -1,11 +1,11 @@
 package core.basesyntax;
 
-import java.util.NoSuchElementException;
-
 public class ArrayList<T> implements List<T> {
     private static final int DEFAULT_CAPACITY = 10;
+    private static final double CAPACITY_INDEX = 1.5;
+
     private Object[] elements;
-    private int size = 0;
+    private int size;
 
     public ArrayList() {
         elements = new Object[DEFAULT_CAPACITY];
@@ -28,9 +28,6 @@ public class ArrayList<T> implements List<T> {
 
     @Override
     public void addAll(List<T> list) {
-        if (list == null || list.size() == 0) {
-            return;
-        }
         ensureCapacity(size + list.size());
         for (int i = 0; i < list.size(); i++) {
             elements[size++] = list.get(i);
@@ -38,6 +35,7 @@ public class ArrayList<T> implements List<T> {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public T get(int index) {
         checkIndex(index);
         return (T) elements[index];
@@ -50,24 +48,24 @@ public class ArrayList<T> implements List<T> {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public T remove(int index) {
         checkIndex(index);
-        T oldValue = (T) elements[index];
+        T removed = (T) elements[index];
         System.arraycopy(elements, index + 1, elements, index, size - index - 1);
         elements[--size] = null;
-        return oldValue;
+        return removed;
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public T remove(T element) {
         for (int i = 0; i < size; i++) {
-            if (element == null && elements[i] == null) {
-                return remove(i);
-            } else if (element != null && element.equals(elements[i])) {
+            if (elements[i] == element || (elements[i] != null && elements[i].equals(element))) {
                 return remove(i);
             }
         }
-        throw new NoSuchElementException("Element not found: " + element);
+        throw new java.util.NoSuchElementException("Element not found: " + element);
     }
 
     @Override
@@ -86,14 +84,18 @@ public class ArrayList<T> implements List<T> {
 
     private void ensureCapacity(int minCapacity) {
         if (minCapacity > elements.length) {
-            int newCapacity = elements.length;
-            while (newCapacity < minCapacity) {
-                newCapacity += newCapacity / 2;
-            }
-            Object[] newElements = new Object[newCapacity];
-            System.arraycopy(elements, 0, newElements, 0, elements.length);
-            elements = newElements;
+            resize(minCapacity);
         }
+    }
+
+    private void resize(int minCapacity) {
+        int newCapacity = elements.length;
+        while (newCapacity < minCapacity) {
+            newCapacity = (int) (newCapacity * CAPACITY_INDEX);
+        }
+        Object[] newArray = new Object[newCapacity];
+        System.arraycopy(elements, 0, newArray, 0, size);
+        elements = newArray;
     }
 
     private void checkIndex(int index) {
